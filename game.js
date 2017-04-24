@@ -57,7 +57,7 @@ window.addEventListener("load",function() {
 	});
 
 	Q.loadTMX("data/level1.tmx, data/sprites.json", function() {
-		Q.compileSheets("data/sprites.png","data/sprites.json");
+		//Q.compileSheets("data/sprites.png","data/sprites.json");
 		Q.stageScene("level1");
 	});
 });
