@@ -51,12 +51,12 @@ window.addEventListener("load",function() {
 	*/
 
 	Q.scene("level1",function(stage) {
-		Q.stageTMX("data/level1.tmx",stage);
+		Q.stageTMX("level1.tmx",stage);
 		//stage.add("viewport").follow(Q("Player").first());
 		stage.centerOn(150,380)
 	});
 
-	Q.loadTMX("data/level1.tmx, data/sprites.json", function() {
+	Q.loadTMX("level1.tmx, sprites.json", function() {
 		//Q.compileSheets("data/sprites.png","data/sprites.json");
 		Q.stageScene("level1");
 	});
