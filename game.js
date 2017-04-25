@@ -5,8 +5,12 @@ window.addEventListener("load",function() {
 	// includes the `TileLayer` class as well as the `2d` component.
 	var Q = window.Q = Quintus()
 		.include("Sprites, Scenes, Input, 2D, Anim, Touch, UI, TMX")
-		// Maximize this game to whatever the size of the browser is
-		.setup({ maximize: true })
+		.setup({ 
+			maximize: "touch", // Maximize only on touch devices
+			width: 320, // Set the default width to 320 pixels
+			height: 480 // Set the default height to 480 pixels
+		})
+  
 		// And turn on default input controls and touch input (for UI)
 		.controls().touch()
 
@@ -52,8 +56,9 @@ window.addEventListener("load",function() {
 
 	Q.scene("level1",function(stage) {
 		Q.stageTMX("level1.tmx",stage);
+		stage.add("viewport")/*.follow(player)*/;
 		//stage.add("viewport").follow(Q("Player").first());
-		stage.centerOn(150,380)
+		stage.centerOn(150,380);
 	});
 
 	Q.loadTMX("level1.tmx, sprites.json", function() {
