@@ -8,7 +8,16 @@ window.addEventListener("load",function() {
 		.setup({ 
 			maximize: false, // Maximize only on touch devices
 			width: 320, // Set the default width to 320 pixels
-			height: 480 // Set the default height to 480 pixels
+			height: 480, // Set the default height to 480 pixels
+
+			/*upsampleWidth:  160,  // Double the pixel density of the
+			upsampleHeight: 240,  // game if the w or h is 640x960
+
+			downsampleWidth: 640, // Halve the pixel density if resolution
+			downsampleHeight: 960  // is larger than or equal to 640x960*/
+			
+			scaleToFit: true // Scale the game to fit the screen of the player's device
+
 		})
   
 		// And turn on default input controls and touch input (for UI)
