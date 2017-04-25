@@ -49,6 +49,13 @@ window.addEventListener("load",function() {
 				}
 			});*/
 
+		},
+		step: function(dt) {
+			console.log(this.p.y);
+			if(this.p.y > 610) { //falls
+				this.p.x = 150;
+				this.p.y = 380;
+			}
 		}
 	});
 
