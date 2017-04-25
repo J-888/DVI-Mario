@@ -6,7 +6,7 @@ window.addEventListener("load",function() {
 	var Q = window.Q = Quintus()
 		.include("Sprites, Scenes, Input, 2D, Anim, Touch, UI, TMX")
 		.setup({ 
-			maximize: "touch", // Maximize only on touch devices
+			maximize: false, // Maximize only on touch devices
 			width: 320, // Set the default width to 320 pixels
 			height: 480 // Set the default height to 480 pixels
 		})
@@ -14,20 +14,19 @@ window.addEventListener("load",function() {
 		// And turn on default input controls and touch input (for UI)
 		.controls().touch()
 
-	/*
-	// ## Player Sprite
+	
+	// ## Mario Sprite
 	// The very basic player sprite, this is just a normal sprite
 	// using the player sprite sheet with default controls added to it.
-	Q.Sprite.extend("Player",{
+	Q.Sprite.extend("Mario",{
 
 		// the init constructor is called on creation
 		init: function(p) {
-
 			// You can call the parent's constructor with this._super(..)
 			this._super(p, {
-				sheet: "player",	// Setting a sprite sheet sets sprite width and height
-				x: 410,			// You can also set additional properties that can
-				y: 90				// be overridden on object creation
+				sheet: "marioR",	// Setting a sprite sheet sets sprite width and height
+				x: 150,			// You can also set additional properties that can
+				y: 380				// be overridden on object creation
 			});
 
 			// Add in pre-made components to get up and running quickly
@@ -41,28 +40,32 @@ window.addEventListener("load",function() {
 
 			// Write event handlers to respond hook into behaviors.
 			// hit.sprite is called everytime the player collides with a sprite
-			this.on("hit.sprite",function(collision) {
+			/*this.on("hit.sprite",function(collision) {
 
 				// Check the collision, if it's the Tower, you win!
 				if(collision.obj.isA("Tower")) {
 					Q.stageScene("endGame",1, { label: "You Won!" }); 
 					this.destroy();
 				}
-			});
+			});*/
 
 		}
 	});
-	*/
 
 	Q.scene("level1",function(stage) {
 		Q.stageTMX("level1.tmx",stage);
-		stage.add("viewport")/*.follow(player)*/;
-		//stage.add("viewport").follow(Q("Player").first());
+		var mario = stage.insert(new Q.Mario());
+		stage.add("viewport").follow(mario,{ x: true, y: true });
+		stage.viewport.offsetX = -100;
+		stage.viewport.offsetY = 155;
 		stage.centerOn(150,380);
 	});
 
+	Q.load("mario_small.png, mario_small.json", function() {
+		Q.compileSheets("mario_small.png","mario_small.json");
+	});
+
 	Q.loadTMX("level1.tmx, sprites.json", function() {
-		//Q.compileSheets("data/sprites.png","data/sprites.json");
 		Q.stageScene("level1");
 	});
 });
