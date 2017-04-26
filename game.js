@@ -46,7 +46,7 @@ window.addEventListener("load",function() {
 				sheet: "marioR",	// Setting a sprite sheet sets sprite width and height
 				x: 150,			// You can also set additional properties that can
 				y: 380,				// be overridden on object creation
-				jumpSpeed: -400
+				jumpSpeed: -550
 			});
 
 			// Add in pre-made components to get up and running quickly
@@ -129,7 +129,8 @@ window.addEventListener("load",function() {
 			this._super(p, {
 				sheet: "bloopa",
 				vx: -30,
-				gravity: 0,
+				gravity: 0.3,
+				originalY: null,
 				type: Q.SPRITE_ENEMY
 			});
 
@@ -156,11 +157,8 @@ window.addEventListener("load",function() {
 			});
 		},
 		step: function(p) {
-			var widthDiagonal = 50;
-			if(this.p.x%widthDiagonal <= widthDiagonal/2)
-				this.p.vy = -20;
-			else
-				this.p.vy = 20;
+			if(this.p.vy > 120)
+				this.p.vy = -132;
 		}
 	});
 
@@ -203,8 +201,8 @@ window.addEventListener("load",function() {
 		var mario = stage.insert(new Q.Mario());
 
 		/*SPAWN ENEMIES*/
-		stage.insert(new Q.Goomba({x: 400, y: 380}));
-		stage.insert(new Q.Bloopa({x: 900, y: 500}));
+		stage.insert(new Q.Goomba({x: 600, y: 300}));
+		stage.insert(new Q.Bloopa({x: 1200, y: 450}));
 		stage.insert(new Q.Goomba({x: 1800, y: 380}));
 		stage.insert(new Q.Goomba({x: 1900, y: 380}));
 
@@ -212,7 +210,7 @@ window.addEventListener("load",function() {
 		stage.insert(new Q.Princess({x: 1950, y: 380}));
 
 		/*VIEWPORT*/
-		stage.add("viewport").follow(mario,{ x: true, y: true });
+		stage.add("viewport").follow(mario,{ x: true, y: false });
 		stage.viewport.offsetX = -100;
 		stage.viewport.offsetY = 155;
 		stage.centerOn(150,380);
