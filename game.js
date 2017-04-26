@@ -206,10 +206,10 @@ window.addEventListener("load",function() {
 		stage.insert(new Q.Goomba({x: 400, y: 380}));
 		stage.insert(new Q.Bloopa({x: 900, y: 500}));
 		stage.insert(new Q.Goomba({x: 1800, y: 380}));
-		stage.insert(new Q.Goomba({x: 2000, y: 380}));
+		stage.insert(new Q.Goomba({x: 1900, y: 380}));
 
 		/*SPAWN PRINCESS*/
-		stage.insert(new Q.Princess({x: 200, y: 380}));
+		stage.insert(new Q.Princess({x: 1950, y: 380}));
 
 		/*VIEWPORT*/
 		stage.add("viewport").follow(mario,{ x: true, y: true });
