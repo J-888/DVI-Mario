@@ -79,8 +79,10 @@ window.addEventListener("load",function() {
 		},
 
 		loseLife: function(){
-			this.p.x = 150;
-			this.p.y = 380;
+			//this.p.x = 150;
+			//this.p.y = 380;
+			this.destroy();
+			Q.stageScene("endGame",1, { label: "You Lose" });
 		}
 	});
 
@@ -91,7 +93,8 @@ window.addEventListener("load",function() {
 			// You can call the parent's constructor with this._super(..)
 			this._super(p, {
 				sheet: "goomba",
-				vx: -100
+				vx: -100,
+				type: Q.SPRITE_ENEMY
 			});
 
 			// Add in pre-made components to get up and running quickly
@@ -118,7 +121,7 @@ window.addEventListener("load",function() {
 		}
 	});
 
-		Q.Sprite.extend("Bloopa",{
+	Q.Sprite.extend("Bloopa",{
 
 		// the init constructor is called on creation
 		init: function(p) {
@@ -126,7 +129,8 @@ window.addEventListener("load",function() {
 			this._super(p, {
 				sheet: "bloopa",
 				vx: -30,
-				gravity: 0
+				gravity: 0,
+				type: Q.SPRITE_ENEMY
 			});
 
 			// Add in pre-made components to get up and running quickly
@@ -160,6 +164,38 @@ window.addEventListener("load",function() {
 		}
 	});
 
+	Q.Sprite.extend("Princess",{
+
+		// the init constructor is called on creation
+		init: function(p) {
+			// You can call the parent's constructor with this._super(..)
+			this._super(p, {
+				sheet: "princess",
+				sensor: true,
+				collisionMask: Q.SPRITE_DEFAULT
+			});
+
+			// Add in pre-made components to get up and running quickly
+			// The `2d` component adds in default 2d collision detection
+			// and kinetics (velocity, gravity)
+			this.add('2d');
+			//this.on("sensor");
+
+
+			this.on("hit",this,"collision");
+		},
+		/*sensor: function() {
+			collision.obj.destroy();
+			Q.stageScene("endGame",1, { label: "You Win" });
+		}*/
+		collision: function(col) {
+			if(col.obj.isA("Mario")) { 
+				col.obj.destroy();
+				Q.stageScene("endGame",1, { label: "You Win" });
+			}
+		}
+	});
+
 	Q.scene("level1",function(stage) {
 		Q.stageTMX("level1.tmx",stage);
 
@@ -172,6 +208,9 @@ window.addEventListener("load",function() {
 		stage.insert(new Q.Goomba({x: 1800, y: 380}));
 		stage.insert(new Q.Goomba({x: 2000, y: 380}));
 
+		/*SPAWN PRINCESS*/
+		stage.insert(new Q.Princess({x: 200, y: 380}));
+
 		/*VIEWPORT*/
 		stage.add("viewport").follow(mario,{ x: true, y: true });
 		stage.viewport.offsetX = -100;
@@ -179,10 +218,39 @@ window.addEventListener("load",function() {
 		stage.centerOn(150,380);
 	});
 
-	Q.load("mario_small.png, mario_small.json, goomba.png, goomba.json, bloopa.png, bloopa.json", function() {
+	//Q.stageScene("endGame",1, { label: "You Win" });
+	Q.scene('endGame',function(stage) {
+		var container = stage.insert(new Q.UI.Container({ x: Q.width/2, y: Q.height/2, fill: "rgba(0,0,0,0.5)" }));
+		var button = container.insert(new Q.UI.Button({ x: 0, y: 0, fill: "#CCCCCC", label: "Play Again" }))
+		var label = container.insert(new Q.UI.Text({x:10, y: -10 - button.p.h, label: stage.options.label }));
+		
+		button.on("click",function() {
+			Q.clearStages();
+			Q.stageScene('level1');
+			//Q.stageScene('titleScreen');
+		});
+
+		container.fit(20);
+	});
+
+	Q.scene('titleScreen',function(stage) {
+		var container = stage.insert(new Q.UI.Container({ x: Q.width/2, y: Q.height/2, fill: "rgba(0,0,0,0.5)" }));
+		var button = container.insert(new Q.UI.Button({ x: 0, y: 0, fill: "#CCCCCC", label: "Play Again" }))
+		var label = container.insert(new Q.UI.Text({x:10, y: -10 - button.p.h, label: stage.options.label }));
+		
+		button.on("click",function() {
+			Q.clearStages();
+			Q.stageScene('level1');
+		});
+
+		container.fit(20);
+	});
+
+	Q.load("mario_small.png, mario_small.json, goomba.png, goomba.json, bloopa.png, bloopa.json, princess.png, princess.json", function() {
 		Q.compileSheets("mario_small.png","mario_small.json");
 		Q.compileSheets("goomba.png","goomba.json");
 		Q.compileSheets("bloopa.png","bloopa.json");
+		Q.compileSheets("princess.png","princess.json");
 	});
 
 	Q.loadTMX("level1.tmx, sprites.json", function() {
