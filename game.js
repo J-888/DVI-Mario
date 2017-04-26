@@ -23,6 +23,16 @@ window.addEventListener("load",function() {
 		// And turn on default input controls and touch input (for UI)
 		.controls().touch()
 
+	/*
+	Q.SPRITE_NONE = 0;
+	Q.SPRITE_DEFAULT = 1;
+	Q.SPRITE_PARTICLE = 2;
+	Q.SPRITE_ACTIVE = 4;
+	Q.SPRITE_FRIENDLY = 8;
+	Q.SPRITE_ENEMY = 16;
+	Q.SPRITE_UI = 32;
+	Q.SPRITE_ALL = 0xFFFF;
+	*/
 	
 	// ## Mario Sprite
 	// The very basic player sprite, this is just a normal sprite
@@ -60,25 +70,74 @@ window.addEventListener("load",function() {
 
 		},
 		step: function(dt) {
-			console.log(this.p.y);
+			//console.log(this.p.y);
 			if(this.p.y > 610) { //falls
 				this.p.x = 150;
 				this.p.y = 380;
 			}
+		},
+
+		loseLife: function(){
+			this.p.x = 150;
+			this.p.y = 380;
+		}
+	});
+
+	Q.Sprite.extend("Goomba",{
+
+		// the init constructor is called on creation
+		init: function(p) {
+			// You can call the parent's constructor with this._super(..)
+			this._super(p, {
+				sheet: "goomba",
+				vx: -100
+			});
+
+			// Add in pre-made components to get up and running quickly
+			// The `2d` component adds in default 2d collision detection
+			// and kinetics (velocity, gravity)
+			this.add('2d, aiBounce');
+
+			// Write event handlers to respond hook into behaviors.
+			// hit.sprite is called everytime the player collides with a sprite
+
+			this.on("bump.left,bump.right,bump.bottom",function(collision) {
+				if(collision.obj.isA("Mario")) { 
+					//collision.obj.destroy();
+					collision.obj.loseLife();
+				}
+			});
+
+			this.on("bump.top",function(collision) {
+				if(collision.obj.isA("Mario")) { 
+					this.destroy();
+					collision.obj.p.vy = -300;
+				}
+			});
 		}
 	});
 
 	Q.scene("level1",function(stage) {
 		Q.stageTMX("level1.tmx",stage);
+
+		/*SPAWN PLAYER*/
 		var mario = stage.insert(new Q.Mario());
+
+		/*SPAWN ENEMIES*/
+		stage.insert(new Q.Goomba({x: 900, y: 380}));
+		stage.insert(new Q.Goomba({x: 1800, y: 380}));
+		stage.insert(new Q.Goomba({x: 2000, y: 380}));
+
+		/*VIEWPORT*/
 		stage.add("viewport").follow(mario,{ x: true, y: true });
 		stage.viewport.offsetX = -100;
 		stage.viewport.offsetY = 155;
 		stage.centerOn(150,380);
 	});
 
-	Q.load("mario_small.png, mario_small.json", function() {
+	Q.load("mario_small.png, mario_small.json, goomba.png, goomba.json", function() {
 		Q.compileSheets("mario_small.png","mario_small.json");
+		Q.compileSheets("goomba.png","goomba.json");
 	});
 
 	Q.loadTMX("level1.tmx, sprites.json", function() {
