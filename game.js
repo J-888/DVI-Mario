@@ -27,6 +27,7 @@ window.addEventListener("load",function() {
 	/********************************/
 	/***********ANIMATIONS***********/
 	/********************************/
+
 	Q.animations('mario anim', {
 		run_right: { frames: [3,2,1], rate: 1/4.5 }, 
 		run_left: { frames: [17,16,15], rate:1/4.5 },
@@ -37,6 +38,17 @@ window.addEventListener("load",function() {
 		fall_right: { frames: [4], loop: false },
 		fall_left: { frames: [18], loop: false }
 	});
+
+	Q.animations('goomba anim', {
+		run: { frames: [0, 1], rate: 1/4.5 },
+		fire_right: { frames: [2], rate: 1/30, trigger: "die" },
+		upside_down: { frames: [3], loop: false }
+	});
+
+
+	/********************************/
+	/***********SPRITES***********/
+	/********************************/
 
 	/*
 	Q.SPRITE_NONE = 0;
@@ -58,8 +70,8 @@ window.addEventListener("load",function() {
 		init: function(p) {
 			// You can call the parent's constructor with this._super(..)
 			this._super(p, {
-				sprite: "mario anim",
 				sheet: "mario",	// Setting a sprite sheet sets sprite width and height
+				sprite: "mario anim",
 				x: 150,			// You can also set additional properties that can
 				y: 380,				// be overridden on object creation
 				jumpSpeed: -550
@@ -125,6 +137,7 @@ window.addEventListener("load",function() {
 			// You can call the parent's constructor with this._super(..)
 			this._super(p, {
 				sheet: "goomba",
+				sprite: "goomba anim",
 				vx: -100,
 				type: Q.SPRITE_ENEMY
 			});
@@ -132,7 +145,8 @@ window.addEventListener("load",function() {
 			// Add in pre-made components to get up and running quickly
 			// The `2d` component adds in default 2d collision detection
 			// and kinetics (velocity, gravity)
-			this.add('2d, aiBounce');
+			this.add('2d, aiBounce, animation');
+			this.play("run");
 
 			// Write event handlers to respond hook into behaviors.
 			// hit.sprite is called everytime the player collides with a sprite
@@ -150,7 +164,11 @@ window.addEventListener("load",function() {
 					collision.obj.p.vy = -300;
 				}
 			});
+		},
+		die: function(p) {
+			this.destroy();
 		}
+
 	});
 
 	Q.Sprite.extend("Bloopa",{
@@ -191,6 +209,9 @@ window.addEventListener("load",function() {
 		step: function(p) {
 			if(this.p.vy > 120)
 				this.p.vy = -132;
+		},
+		die: function(p) {
+			this.destroy();
 		}
 	});
 
