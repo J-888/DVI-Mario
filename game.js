@@ -21,7 +21,22 @@ window.addEventListener("load",function() {
 		})
   
 		// And turn on default input controls and touch input (for UI)
-		.controls().touch()
+		.controls().touch();
+
+
+	/********************************/
+	/***********ANIMATIONS***********/
+	/********************************/
+	Q.animations('mario anim', {
+		run_right: { frames: [3,2,1], rate: 1/4.5 }, 
+		run_left: { frames: [17,16,15], rate:1/4.5 },
+		//fire_right: { frames: [9,10,10], next: 'stand_right', rate: 1/30, trigger: "fired" },
+		//fire_left: { frames: [20,21,21], next: 'stand_left', rate: 1/30, trigger: "fired" },
+		stand_right: { frames: [0], loop: false },
+		stand_left: { frames: [14], loop: false },
+		fall_right: { frames: [4], loop: false },
+		fall_left: { frames: [18], loop: false }
+	});
 
 	/*
 	Q.SPRITE_NONE = 0;
@@ -43,7 +58,8 @@ window.addEventListener("load",function() {
 		init: function(p) {
 			// You can call the parent's constructor with this._super(..)
 			this._super(p, {
-				sheet: "marioR",	// Setting a sprite sheet sets sprite width and height
+				sprite: "mario anim",
+				sheet: "mario",	// Setting a sprite sheet sets sprite width and height
 				x: 150,			// You can also set additional properties that can
 				y: 380,				// be overridden on object creation
 				jumpSpeed: -550
@@ -56,7 +72,7 @@ window.addEventListener("load",function() {
 			// default input actions (left, right to move, up or action to jump)
 			// It also checks to make sure the player is on a horizontal surface before
 			// letting them jump.
-			this.add('2d, platformerControls');
+			this.add('2d, platformerControls, animation');
 
 			// Write event handlers to respond hook into behaviors.
 			// hit.sprite is called everytime the player collides with a sprite
@@ -71,7 +87,21 @@ window.addEventListener("load",function() {
 
 		},
 		step: function(dt) {
-			//console.log(this.p.y);
+			console.log(this.p.landed > 0);
+			if(!this.p.jumping && this.p.landed > 0)
+				if(this.p.vx > 0) {
+					this.play("run_right");
+				}
+				else if(this.p.vx < 0) {
+					this.play("run_left");
+				}
+				else {
+					this.play("stand_" + this.p.direction);
+				}
+			else {
+				this.play("fall_" + this.p.direction);
+			}
+
 			if(this.p.y > 610) { //falls
 				//this.p.x = 150;
 				//this.p.y = 380;	
