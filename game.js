@@ -127,7 +127,6 @@ window.addEventListener("load",function() {
 				Q.stageScene("endGame",1, { label: "You Lose" });
 			}
 		},
-
 		loseLife: function(){
 			//this.p.x = 150;
 			//this.p.y = 380;
@@ -194,6 +193,8 @@ window.addEventListener("load",function() {
 				type: Q.SPRITE_ENEMY
 			});
 
+			this.on("die",this,"die");
+
 			// Add in pre-made components to get up and running quickly
 			// The `2d` component adds in default 2d collision detection
 			// and kinetics (velocity, gravity)
@@ -211,12 +212,13 @@ window.addEventListener("load",function() {
 
 			this.on("bump.top",function(collision) {
 				if(collision.obj.isA("Mario")) { 
-					this.destroy();
+					//this.destroy();
+					this.play("die", 1);
 					collision.obj.p.vy = -300;
 				}
 			});
 		},
-		step: function(p) {				
+		step: function(p) {		
 			if(this.p.vy > 120)
 				this.p.vy = -132;
 
