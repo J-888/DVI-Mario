@@ -24,31 +24,37 @@ window.addEventListener("load",function() {
 		.controls().touch();
 
 
-	/********************************/
-	/***********ANIMATIONS***********/
-	/********************************/
+/********************************/
+/***********ANIMATIONS***********/
+/********************************/
 
 	Q.animations('mario anim', {
 		run_right: { frames: [3,2,1], rate: 1/4.5 }, 
 		run_left: { frames: [17,16,15], rate:1/4.5 },
 		//fire_right: { frames: [9,10,10], next: 'stand_right', rate: 1/30, trigger: "fired" },
 		//fire_left: { frames: [20,21,21], next: 'stand_left', rate: 1/30, trigger: "fired" },
-		stand_right: { frames: [0], loop: false },
-		stand_left: { frames: [14], loop: false },
-		fall_right: { frames: [4], loop: false },
-		fall_left: { frames: [18], loop: false }
+		stand_right: { frames: [0], loop: true },
+		stand_left: { frames: [14], loop: true },
+		fall_right: { frames: [4], loop: true },
+		fall_left: { frames: [18], loop: true }
 	});
 
 	Q.animations('goomba anim', {
 		run: { frames: [0, 1], rate: 1/4.5 },
-		fire_right: { frames: [2], rate: 1/30, trigger: "die" },
-		upside_down: { frames: [3], loop: false }
+		die: { frames: [2], rate: 1/2, loop: false, trigger: "die" },
+		upside_down: { frames: [3], loop: true }
+	});
+
+	Q.animations('bloopa anim', {
+		swim_up: { frames: [0], loop: true },
+		swim_down: { frames: [1], loop: true },
+		die: { frames: [2], rate: 1/2, loop: false, trigger: "die" }
 	});
 
 
-	/********************************/
-	/***********SPRITES***********/
-	/********************************/
+/********************************/
+/************SPRITES*************/
+/********************************/
 
 	/*
 	Q.SPRITE_NONE = 0;
@@ -99,7 +105,7 @@ window.addEventListener("load",function() {
 
 		},
 		step: function(dt) {
-			console.log(this.p.landed > 0);
+			//console.log(this.p.landed > 0);
 			if(!this.p.jumping && this.p.landed > 0)
 				if(this.p.vx > 0) {
 					this.play("run_right");
@@ -148,6 +154,8 @@ window.addEventListener("load",function() {
 			this.add('2d, aiBounce, animation');
 			this.play("run");
 
+			this.on("die",this,"die");
+
 			// Write event handlers to respond hook into behaviors.
 			// hit.sprite is called everytime the player collides with a sprite
 
@@ -160,7 +168,8 @@ window.addEventListener("load",function() {
 
 			this.on("bump.top",function(collision) {
 				if(collision.obj.isA("Mario")) { 
-					this.destroy();
+					//this.destroy();
+					this.play("die", 1);
 					collision.obj.p.vy = -300;
 				}
 			});
@@ -178,6 +187,7 @@ window.addEventListener("load",function() {
 			// You can call the parent's constructor with this._super(..)
 			this._super(p, {
 				sheet: "bloopa",
+				sprite: "bloopa anim",
 				vx: -30,
 				gravity: 0.3,
 				originalY: null,
@@ -187,7 +197,7 @@ window.addEventListener("load",function() {
 			// Add in pre-made components to get up and running quickly
 			// The `2d` component adds in default 2d collision detection
 			// and kinetics (velocity, gravity)
-			this.add('2d, aiBounce');
+			this.add('2d, aiBounce, animation');
 
 			// Write event handlers to respond hook into behaviors.
 			// hit.sprite is called everytime the player collides with a sprite
@@ -206,9 +216,15 @@ window.addEventListener("load",function() {
 				}
 			});
 		},
-		step: function(p) {
+		step: function(p) {				
 			if(this.p.vy > 120)
 				this.p.vy = -132;
+
+
+			if(this.p.vy < 0)
+				this.play("swim_up");
+			else
+				this.play("swim_down");
 		},
 		die: function(p) {
 			this.destroy();
