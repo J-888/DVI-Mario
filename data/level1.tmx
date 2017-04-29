@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE map SYSTEM "http://mapeditor.org/dtd/1.0/map.dtd">
-<map version="1.0" orientation="orthogonal" width="60" height="18" tilewidth="34" tileheight="34">
- <tileset firstgid="1" name="tiles" tilewidth="34" tileheight="34">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="60" height="18" tilewidth="34" tileheight="34" nextobjectid="1">
+ <tileset firstgid="1" name="tiles" tilewidth="34" tileheight="34" tilecount="49" columns="7">
   <image source="../images/tiles.png" width="256" height="256"/>
  </tileset>
- <imagelayer name="background" width="60" height="18">
-  <image source="../images/bg.png"/>
+ <imagelayer name="background">
+  <image source="../images/bg.gif" width="1024" height="620"/>
  </imagelayer>
  <layer name="Collision" width="60" height="18">
   <properties>
