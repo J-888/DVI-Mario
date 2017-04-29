@@ -80,7 +80,8 @@ window.addEventListener("load",function() {
 				sprite: "mario anim",
 				x: 150,			// You can also set additional properties that can
 				y: 380,				// be overridden on object creation
-				jumpSpeed: -550
+				jumpSpeed: -550,
+				type: Q.SPRITE_ACTIVE | Q.SPRITE_DEFAULT
 			});
 
 			// Add in pre-made components to get up and running quickly
@@ -144,6 +145,7 @@ window.addEventListener("load",function() {
 				sheet: "goomba",
 				sprite: "goomba anim",
 				vx: -100,
+				collisionMask: Q.SPRITE_ENEMY | Q.SPRITE_ACTIVE | Q.SPRITE_DEFAULT,
 				type: Q.SPRITE_ENEMY
 			});
 
@@ -190,6 +192,7 @@ window.addEventListener("load",function() {
 				vx: -30,
 				gravity: 0.3,
 				originalY: null,
+				collisionMask: Q.SPRITE_ENEMY | Q.SPRITE_ACTIVE | Q.SPRITE_DEFAULT,
 				type: Q.SPRITE_ENEMY
 			});
 
@@ -240,8 +243,8 @@ window.addEventListener("load",function() {
 			// You can call the parent's constructor with this._super(..)
 			this._super(p, {
 				sheet: "princess",
-				sensor: true,
-				collisionMask: Q.SPRITE_DEFAULT
+				collisionMask: Q.SPRITE_ACTIVE | Q.SPRITE_DEFAULT,
+				type: Q.SPRITE_FRIENDLY
 			});
 
 			// Add in pre-made components to get up and running quickly
@@ -265,8 +268,34 @@ window.addEventListener("load",function() {
 		}
 	});
 
+	Q.Sprite.extend("Coin",{
+
+		// the init constructor is called on creation
+		init: function(p) {
+			// You can call the parent's constructor with this._super(..)
+			this._super(p, {
+				sheet: "coin",
+				sensor: true,
+				collisionMask: Q.SPRITE_FRIENDLY
+			});
+
+			// Add in pre-made components to get up and running quickly
+			// The `2d` component adds in default 2d collision detection
+			// and kinetics (velocity, gravity)
+			this.on("sensor");
+
+		},
+		sensor: function(col) {
+			if(col.isA("Mario")) { 
+				this.destroy();
+				Q.state.inc("score",100);
+			}
+		}
+	});
+
 	Q.scene("level1",function(stage) {
 		Q.stageTMX("level1.tmx",stage);
+
 
 		/*SPAWN PLAYER*/
 		var mario = stage.insert(new Q.Mario());
@@ -276,6 +305,14 @@ window.addEventListener("load",function() {
 		stage.insert(new Q.Bloopa({x: 1200, y: 450}));
 		stage.insert(new Q.Goomba({x: 1800, y: 380}));
 		stage.insert(new Q.Goomba({x: 1900, y: 380}));
+
+
+		/*SPAWN COINS*/
+		stage.insert(new Q.Coin({x: 400, y: 380}));
+		stage.insert(new Q.Coin({x: 400, y: 500}));
+
+		stage.insert(new Q.Princess({x: 190, y: 380}));
+
 
 		/*SPAWN PRINCESS*/
 		stage.insert(new Q.Princess({x: 1950, y: 380}));
@@ -287,6 +324,25 @@ window.addEventListener("load",function() {
 		stage.centerOn(150,380);
 	});
 
+/********************************/
+/************SCENES**************/
+/********************************/	
+
+	Q.UI.Text.extend("Score",{
+		init: function(p) {
+			this._super({ label: "score: 0", x: 10-Q.width/2, y: 10-Q.height/2, weight: 100, size: 15, family: "SuperMario", color: "#FFFFFF", outlineWidth: 4, align: "left" });
+			Q.state.on("change.score",this,"score");
+		},
+		score: function(score) {
+			this.p.label = "score: " + score;
+		}
+	});
+
+	Q.scene("gameStats",function(stage) {
+		var container = stage.insert(new Q.UI.Container({ x: Q.width/2, y: Q.height/2, fill: "rgba(0,0,0,0)" }));
+		var scoreLabel = container.insert(new Q.Score());
+	});
+
 	Q.scene('endGame',function(stage) {
 		var container = stage.insert(new Q.UI.Container({ x: Q.width/2, y: Q.height/2, fill: "rgba(0,0,0,0.5)" }));
 		var button = container.insert(new Q.UI.Button({ x: 0, y: 0, fill: "#CCCCCC", label: "Play Again" }));
@@ -294,13 +350,11 @@ window.addEventListener("load",function() {
 		
 		button.on("click",function() {
 			Q.clearStages();
-			//Q.stageScene('level1');
 			Q.stageScene('titleScreen');
 		});
 
 		button.on("push",function() {
 			Q.clearStages();
-			//Q.stageScene('level1');
 			Q.stageScene('titleScreen');
 		});
 
@@ -310,25 +364,32 @@ window.addEventListener("load",function() {
 	Q.scene('titleScreen',function(stage) {
 		var container = stage.insert(new Q.UI.Container({ x: Q.width/2, y: Q.height/2, fill: "rgba(0,0,0,0.5)" }));
 		var button = container.insert(new Q.UI.Button({ asset: "mainTitle.png", x: 0, y: 0}))
-		var label = container.insert(new Q.UI.Text({x:0, y: 70, weight: 100, size:24, family: "SuperMario", color: "#FFFFFF", outlineWidth: 4, label: "Start" }));
+		var label = container.insert(new Q.UI.Text({x:0, y: 70, weight: 100, size: 24, family: "SuperMario", color: "#FFFFFF", outlineWidth: 4, label: "Start" }));
 		
 		button.on("click",function() {
 			Q.clearStages();
+			Q.state.reset({ score: 0, lives: 3 });
 			Q.stageScene('level1');
+			Q.stageScene("gameStats",1);
 		});
 
 		container.fit(20);
 	});
 
-	Q.load("mario_small.png, mario_small.json, goomba.png, goomba.json, bloopa.png, bloopa.json, princess.png, princess.json, mainTitle.png", function() {
+/********************************/
+/************LOAD*************/
+/********************************/
+
+	Q.load("mario_small.png, mario_small.json, goomba.png, goomba.json, bloopa.png, bloopa.json, princess.png, princess.json, coin.png, coin.json, mainTitle.png", function() {
 		Q.compileSheets("mario_small.png","mario_small.json");
 		Q.compileSheets("goomba.png","goomba.json");
 		Q.compileSheets("bloopa.png","bloopa.json");
 		Q.compileSheets("princess.png","princess.json");
+		Q.compileSheets("coin.png","coin.json");
+		//Q.debug = true;
 	});
 
 	Q.loadTMX("level1.tmx, sprites.json", function() {
 		Q.stageScene('titleScreen');
-		//Q.stageScene("level1");
 	});
 });
