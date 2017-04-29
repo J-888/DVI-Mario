@@ -51,6 +51,11 @@ window.addEventListener("load",function() {
 		die: { frames: [2], rate: 1/2, loop: false, trigger: "die" }
 	});
 
+	Q.animations('coin anim', {
+		glint: { frames: [2,2,2,2,2,2,1,0,1], rate: 1/4, loop: true }
+	});
+
+
 
 /********************************/
 /************SPRITES*************/
@@ -177,6 +182,7 @@ window.addEventListener("load",function() {
 		},
 		die: function(p) {
 			this.destroy();
+			Q.state.inc("score",200);
 		}
 
 	});
@@ -233,6 +239,7 @@ window.addEventListener("load",function() {
 		},
 		die: function(p) {
 			this.destroy();
+			Q.state.inc("score",200);
 		}
 	});
 
@@ -275,9 +282,15 @@ window.addEventListener("load",function() {
 			// You can call the parent's constructor with this._super(..)
 			this._super(p, {
 				sheet: "coin",
+				sprite: "coin anim",
 				sensor: true,
-				collisionMask: Q.SPRITE_FRIENDLY
+				collisionMask: Q.SPRITE_FRIENDLY,
+				collected: false
 			});
+
+			this.add('animation');
+			this.play("glint");
+			this.add('tween');
 
 			// Add in pre-made components to get up and running quickly
 			// The `2d` component adds in default 2d collision detection
@@ -286,12 +299,18 @@ window.addEventListener("load",function() {
 
 		},
 		sensor: function(col) {
-			if(col.isA("Mario")) { 
-				this.destroy();
-				Q.state.inc("score",100);
+			if(!this.p.collected && col.isA("Mario")) { 
+				this.p.collected = true;
+				Q.state.inc("score",200);
+				this.animate({y: this.p.y-50}, 0.3, Q.Easing.Linear, { callback: function(){ this.destroy() } });
+				//this.animate({y: this.p.y-50}, 0.3, Q.Easing.Quadratic.Out, { callback: function(){ this.destroy() } });
 			}
 		}
 	});
+
+/********************************/
+/************SCENES**************/
+/********************************/	
 
 	Q.scene("level1",function(stage) {
 		Q.stageTMX("level1.tmx",stage);
@@ -308,10 +327,16 @@ window.addEventListener("load",function() {
 
 
 		/*SPAWN COINS*/
-		stage.insert(new Q.Coin({x: 400, y: 380}));
-		stage.insert(new Q.Coin({x: 400, y: 500}));
+		stage.insert(new Q.Coin({x: 600, y: 400}));
+		stage.insert(new Q.Coin({x: 625, y: 375}));
+		stage.insert(new Q.Coin({x: 650, y: 375}));
+		stage.insert(new Q.Coin({x: 675, y: 400}));
 
-		stage.insert(new Q.Princess({x: 190, y: 380}));
+
+		stage.insert(new Q.Coin({x: 1150, y: 375}));
+		stage.insert(new Q.Coin({x: 1175, y: 400}));
+		stage.insert(new Q.Coin({x: 1200, y: 425}));
+		stage.insert(new Q.Coin({x: 1200, y: 455}));
 
 
 		/*SPAWN PRINCESS*/
@@ -323,10 +348,6 @@ window.addEventListener("load",function() {
 		stage.viewport.offsetY = 155;
 		stage.centerOn(150,380);
 	});
-
-/********************************/
-/************SCENES**************/
-/********************************/	
 
 	Q.UI.Text.extend("Score",{
 		init: function(p) {
@@ -377,7 +398,7 @@ window.addEventListener("load",function() {
 	});
 
 /********************************/
-/************LOAD*************/
+/*************LOAD***************/
 /********************************/
 
 	Q.load("mario_small.png, mario_small.json, goomba.png, goomba.json, bloopa.png, bloopa.json, princess.png, princess.json, coin.png, coin.json, mainTitle.png", function() {
