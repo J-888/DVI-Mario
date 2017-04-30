@@ -55,7 +55,37 @@ window.addEventListener("load",function() {
 		glint: { frames: [2,2,2,2,2,2,1,0,1], rate: 1/4, loop: true }
 	});
 
+/********************************/
+/***********COMPONENTS***********/
+/********************************/
 
+	Q.component('defaultEnemy', {
+		added: function () {
+			this.entity.p.collisionMask = Q.SPRITE_ENEMY | Q.SPRITE_ACTIVE | Q.SPRITE_DEFAULT;
+			this.entity.p.type = Q.SPRITE_ENEMY;
+
+			this.entity.on("die",this.entity,"die");
+
+			this.entity.on("bump.left,bump.right,bump.bottom",function(collision) {
+				if(collision.obj.isA("Mario")) { 
+					collision.obj.loseLife();
+				}
+			});
+
+			this.entity.on("bump.top",function(collision) {
+				if(collision.obj.isA("Mario")) { 
+					this.play("die", 1);
+					collision.obj.p.vy = -300;
+				}
+			});
+		},
+		extend: {
+			die: function(p) {
+				this.destroy();
+				Q.state.inc("score",200);
+			}
+		}
+	});
 
 /********************************/
 /************SPRITES*************/
@@ -149,42 +179,13 @@ window.addEventListener("load",function() {
 			this._super(p, {
 				sheet: "goomba",
 				sprite: "goomba anim",
-				vx: -100,
-				collisionMask: Q.SPRITE_ENEMY | Q.SPRITE_ACTIVE | Q.SPRITE_DEFAULT,
-				type: Q.SPRITE_ENEMY
+				vx: -100
 			});
 
 			// Add in pre-made components to get up and running quickly
-			// The `2d` component adds in default 2d collision detection
-			// and kinetics (velocity, gravity)
-			this.add('2d, aiBounce, animation');
+			this.add('2d, aiBounce, animation, defaultEnemy');
 			this.play("run");
-
-			this.on("die",this,"die");
-
-			// Write event handlers to respond hook into behaviors.
-			// hit.sprite is called everytime the player collides with a sprite
-
-			this.on("bump.left,bump.right,bump.bottom",function(collision) {
-				if(collision.obj.isA("Mario")) { 
-					//collision.obj.destroy();
-					collision.obj.loseLife();
-				}
-			});
-
-			this.on("bump.top",function(collision) {
-				if(collision.obj.isA("Mario")) { 
-					//this.destroy();
-					this.play("die", 1);
-					collision.obj.p.vy = -300;
-				}
-			});
-		},
-		die: function(p) {
-			this.destroy();
-			Q.state.inc("score",200);
 		}
-
 	});
 
 	Q.Sprite.extend("Bloopa",{
@@ -197,49 +198,20 @@ window.addEventListener("load",function() {
 				sprite: "bloopa anim",
 				vx: -30,
 				gravity: 0.3,
-				originalY: null,
-				collisionMask: Q.SPRITE_ENEMY | Q.SPRITE_ACTIVE | Q.SPRITE_DEFAULT,
-				type: Q.SPRITE_ENEMY
+				originalY: null
 			});
-
-			this.on("die",this,"die");
 
 			// Add in pre-made components to get up and running quickly
-			// The `2d` component adds in default 2d collision detection
-			// and kinetics (velocity, gravity)
-			this.add('2d, aiBounce, animation');
-
-			// Write event handlers to respond hook into behaviors.
-			// hit.sprite is called everytime the player collides with a sprite
-
-			this.on("bump.left,bump.right,bump.bottom",function(collision) {
-				if(collision.obj.isA("Mario")) { 
-					//collision.obj.destroy();
-					collision.obj.loseLife();
-				}
-			});
-
-			this.on("bump.top",function(collision) {
-				if(collision.obj.isA("Mario")) { 
-					//this.destroy();
-					this.play("die", 1);
-					collision.obj.p.vy = -300;
-				}
-			});
+			this.add('2d, aiBounce, animation, defaultEnemy');
 		},
 		step: function(p) {		
 			if(this.p.vy > 120)
 				this.p.vy = -132;
 
-
 			if(this.p.vy < 0)
 				this.play("swim_up");
 			else
 				this.play("swim_down");
-		},
-		die: function(p) {
-			this.destroy();
-			Q.state.inc("score",200);
 		}
 	});
 
@@ -250,7 +222,6 @@ window.addEventListener("load",function() {
 			// You can call the parent's constructor with this._super(..)
 			this._super(p, {
 				sheet: "princess",
-				collisionMask: Q.SPRITE_ACTIVE | Q.SPRITE_DEFAULT,
 				type: Q.SPRITE_FRIENDLY
 			});
 
