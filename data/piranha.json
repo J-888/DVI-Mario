@@ -1,0 +1,4 @@
+{
+	"piranha_green":{"sx":0,"sy":0,"tileW":32,"tileH":48,"frames":2},
+	"piranha_blue":{"sx":0,"sy":48,"tileW":32,"tileH":48,"frames":2}
+}

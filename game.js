@@ -51,6 +51,11 @@ window.addEventListener("load",function() {
 		die: { frames: [2], rate: 1/2, loop: false, trigger: "die" }
 	});
 
+	Q.animations('piranha anim', {
+		eat: { frames: [0,1], rate: 1/2, loop: true },
+		//die: { frames: [2], rate: 1/2, loop: false, trigger: "die" }
+	});
+
 	Q.animations('coin anim', {
 		glint: { frames: [2,2,2,2,2,2,1,0,1], rate: 1/4, loop: true }
 	});
@@ -215,6 +220,29 @@ window.addEventListener("load",function() {
 		}
 	});
 
+	Q.Sprite.extend("Piranha",{
+
+		// the init constructor is called on creation
+		init: function(p) {
+			// You can call the parent's constructor with this._super(..)
+			this._super(p, {
+				sheet: "piranha_green",
+				sprite: "piranha anim",
+				vx: 0
+			});
+
+			// Add in pre-made components to get up and running quickly
+			this.add('2d, animation, defaultEnemy');
+			this.play("eat");
+
+			this.on("bump.top",function(collision) {
+				if(collision.obj.isA("Mario")) { 
+					collision.obj.loseLife();
+				}
+			});
+		}
+	});
+
 	Q.Sprite.extend("Princess",{
 
 		// the init constructor is called on creation
@@ -291,6 +319,9 @@ window.addEventListener("load",function() {
 		var mario = stage.insert(new Q.Mario());
 
 		/*SPAWN ENEMIES*/
+		stage.insert(new Q.Piranha({x: 16, y: 550}));
+		stage.insert(new Q.Piranha({x: 52, y: 55}));
+		stage.insert(new Q.Piranha({x: 85, y: 550}));
 		stage.insert(new Q.Goomba({x: 600, y: 300}));
 		stage.insert(new Q.Bloopa({x: 1200, y: 450}));
 		stage.insert(new Q.Goomba({x: 1800, y: 380}));
@@ -372,10 +403,11 @@ window.addEventListener("load",function() {
 /*************LOAD***************/
 /********************************/
 
-	Q.load("mario_small.png, mario_small.json, goomba.png, goomba.json, bloopa.png, bloopa.json, princess.png, princess.json, coin.png, coin.json, mainTitle.png", function() {
+	Q.load("mario_small.png, mario_small.json, goomba.png, goomba.json, bloopa.png, bloopa.json, piranha.png, piranha.json, princess.png, princess.json, coin.png, coin.json, mainTitle.png", function() {
 		Q.compileSheets("mario_small.png","mario_small.json");
 		Q.compileSheets("goomba.png","goomba.json");
 		Q.compileSheets("bloopa.png","bloopa.json");
+		Q.compileSheets("piranha.png","piranha.json");
 		Q.compileSheets("princess.png","princess.json");
 		Q.compileSheets("coin.png","coin.json");
 		//Q.debug = true;
