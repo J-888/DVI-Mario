@@ -165,14 +165,14 @@ window.addEventListener("load",function() {
 				//this.p.x = 150;
 				//this.p.y = 380;	
 				this.destroy();
-				Q.stageScene("endGame",1, { label: "You Lose" });
+				Q.stageScene("endGame",2, { label: "You Lose" });
 			}
 		},
 		loseLife: function(){
 			//this.p.x = 150;
 			//this.p.y = 380;
 			this.destroy();
-			Q.stageScene("endGame",1, { label: "You Lose" });
+			Q.stageScene("endGame",2, { label: "You Lose" });
 		}
 	});
 
@@ -235,6 +235,7 @@ window.addEventListener("load",function() {
 			this.add('2d, animation, defaultEnemy');
 			this.play("eat");
 
+			this.off("bump.top");
 			this.on("bump.top",function(collision) {
 				if(collision.obj.isA("Mario")) { 
 					collision.obj.loseLife();
