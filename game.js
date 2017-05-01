@@ -129,6 +129,11 @@ window.addEventListener("load",function() {
 			// letting them jump.
 			this.add('2d, platformerControls, animation');
 
+			if (typeof this.p.minX !== 'undefined')
+				this.p.minX += this.p.cx;
+			if (typeof this.p.maxX !== 'undefined')
+				this.p.maxX -= this.p.cx;
+
 			// Write event handlers to respond hook into behaviors.
 			// hit.sprite is called everytime the player collides with a sprite
 			/*this.on("hit.sprite",function(collision) {
@@ -143,25 +148,35 @@ window.addEventListener("load",function() {
 		},
 		step: function(dt) {
 			//console.log("x: " + this.p.x + "  y: " + this.p.y);
-			if(!this.p.jumping && this.p.landed > 0)
-				if(this.p.vx > 0) {
-					this.play("run_right");
-				}
-				else if(this.p.vx < 0) {
-					this.play("run_left");
-				}
-				else {
-					this.play("stand_" + this.p.direction);
-				}
-			else {
-				this.play("fall_" + this.p.direction);
-			}
 
-			if(this.p.y > 610) { //falls
+			if(this.p.y > 610) { //map fall
 				//this.p.x = 150;
 				//this.p.y = 380;	
 				this.destroy();
 				Q.stageScene("endGame",2, { label: "You Lose" });
+			} else {
+				if(typeof this.p.minX !== 'undefined' && this.p.minX >= this.p.x) {
+					this.p.x = this.p.minX;
+					this.p.vx = Math.max(this.p.vx, 0);
+				} else if(typeof this.p.maxX !== 'undefined' && this.p.maxX <= this.p.x) {
+					this.p.x = this.p.maxX;
+					this.p.vx = Math.min(this.p.vx, 0);
+				}
+
+				if(!this.p.jumping && this.p.landed > 0) {
+					if(this.p.vx > 0) {
+						this.play("run_right");
+					} else if(this.p.vx < 0) {
+						this.play("run_left");
+					} else {
+						this.play("stand_" + this.p.direction);
+					}
+				} else {
+					this.play("fall_" + this.p.direction);
+				}
+
+				if(this.p.vx == 0)
+					this.p.x = Math.round(this.p.x);
 			}
 		},
 		loseLife: function(){
@@ -324,7 +339,8 @@ window.addEventListener("load",function() {
 		Q.stageTMX("level1.tmx",stage);
 
 		/*SPAWN PLAYER*/
-		var mario = stage.insert(new Q.Mario());
+		var minX = 0, maxX = 60*34;
+		var mario = stage.insert(new Q.Mario({minX: minX, maxX: maxX}));
 
 		/*SPAWN ENEMIES*/
 		stage.insert(new Q.Piranha({x: 16, y: 550}));
@@ -351,7 +367,7 @@ window.addEventListener("load",function() {
 		stage.insert(new Q.Princess({x: 1950, y: 380}));
 
 		/*VIEWPORT*/
-		stage.add("viewport").follow(mario,{ x: true, y: false });
+		stage.add("viewport").follow(mario,{ x: true, y: false },{ minX: minX, maxX: maxX });
 		stage.viewport.offsetX = -100;
 		stage.viewport.offsetY = 155;
 		stage.centerOn(150,380);
@@ -361,7 +377,8 @@ window.addEventListener("load",function() {
 		Q.stageTMX("level2.tmx",stage);
 
 		/*SPAWN PLAYER*/
-		var mario = stage.insert(new Q.Mario());
+		var minX = 0, maxX = 60*34;
+		var mario = stage.insert(new Q.Mario({minX: minX, maxX: maxX}));
 
 		/*SPAWN ENEMIES*/
 		stage.insert(new Q.Goomba({x: 650, y: 500}));
@@ -398,7 +415,7 @@ window.addEventListener("load",function() {
 		stage.insert(new Q.Princess({x: 1950, y: 380}));
 
 		/*VIEWPORT*/
-		stage.add("viewport").follow(mario,{ x: true, y: false });
+		stage.add("viewport").follow(mario,{ x: true, y: false },{ minX: minX, maxX: maxX });
 		stage.viewport.offsetX = -100;
 		stage.viewport.offsetY = 155;
 		stage.centerOn(150,380);
@@ -406,8 +423,9 @@ window.addEventListener("load",function() {
 
 	Q.UI.Text.extend("Score",{
 		init: function(p) {
-			this._super({ label: "score: 0", x: 10-Q.width/2, y: 10-Q.height/2, weight: 100, size: 15, family: "SuperMario", color: "#FFFFFF", outlineWidth: 4, align: "left" });
+			this._super({ label: "score: ", x: 10-Q.width/2, y: 10-Q.height/2, weight: 100, size: 15, family: "SuperMario", color: "#FFFFFF", outlineWidth: 4, align: "left" });
 			Q.state.on("change.score",this,"score");
+			this.score(Q.state.get("score"));
 		},
 		score: function(score) {
 			this.p.label = "score: " + score;
@@ -421,14 +439,7 @@ window.addEventListener("load",function() {
 			this.lives(Q.state.get("lives"));
 		},
 		lives: function(lives) {
-			if(lives == 3)
-				this.p.label = "♥♥♥";
-			else if(lives == 2)
-				this.p.label = "♥♥";
-			else if(lives == 1)
-				this.p.label = "♥";
-			else
-				this.p.label = "";
+			this.p.label = "♥".repeat(lives);
 		}
 	});
 
@@ -464,7 +475,7 @@ window.addEventListener("load",function() {
 		button.on("click",function() {
 			Q.clearStages();
 			Q.state.reset({ level: 1, score: 0, lives: 3 });
-			Q.stageScene('level1');
+			Q.stageScene('level' + Q.state.get("level"));
 			Q.stageScene("gameStats",1);
 		});
 
@@ -475,8 +486,8 @@ window.addEventListener("load",function() {
 /*************LOAD***************/
 /********************************/
 
-	Q.load("mario_small.png, mario_small.json, goomba.png, goomba.json, bloopa.png, bloopa.json, piranha.png, piranha.json, princess.png, princess.json, coin.png, coin.json, mainTitle.png", function() {
-		Q.compileSheets("mario_small.png","mario_small.json");
+	Q.load("mario_small.gif, mario_small.json, goomba.png, goomba.json, bloopa.png, bloopa.json, piranha.png, piranha.json, princess.png, princess.json, coin.png, coin.json, mainTitle.png", function() {
+		Q.compileSheets("mario_small.gif","mario_small.json");
 		Q.compileSheets("goomba.png","goomba.json");
 		Q.compileSheets("bloopa.png","bloopa.json");
 		Q.compileSheets("piranha.png","piranha.json");
