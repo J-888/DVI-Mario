@@ -9,15 +9,11 @@ window.addEventListener("load",function() {
 			maximize: false, // Maximize only on touch devices
 			width: 320, // Set the default width to 320 pixels
 			height: 480, // Set the default height to 480 pixels
-
-			/*upsampleWidth:  160,  // Double the pixel density of the
-			upsampleHeight: 240,  // game if the w or h is 640x960
-
-			downsampleWidth: 640, // Halve the pixel density if resolution
-			downsampleHeight: 960  // is larger than or equal to 640x960*/
 			
-			//scaleToFit: true // Scale the game to fit the screen of the player's device
+			//scaleToFit: true, // Scale the game to fit the screen of the player's device
+			scaleToFit2: true, // Scale (using integer factors) the game to fit the screen of the player's device
 
+			development: true
 		})
   
 		// And turn on default input controls and touch input (for UI)
@@ -332,7 +328,7 @@ window.addEventListener("load",function() {
 
 		/*SPAWN ENEMIES*/
 		stage.insert(new Q.Piranha({x: 16, y: 550}));
-		stage.insert(new Q.Piranha({x: 52, y: 55}));
+		stage.insert(new Q.Piranha({x: 52, y: 550}));
 		stage.insert(new Q.Piranha({x: 85, y: 550}));
 		stage.insert(new Q.Goomba({x: 600, y: 300}));
 		stage.insert(new Q.Bloopa({x: 1200, y: 450}));
