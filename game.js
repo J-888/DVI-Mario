@@ -69,7 +69,7 @@ window.addEventListener("load",function() {
 
 			this.entity.on("bump.left,bump.right,bump.bottom",function(collision) {
 				if(collision.obj.isA("Mario")) { 
-					collision.obj.loseLife();
+					collision.obj.receiveDamage();
 				}
 			});
 
@@ -112,11 +112,12 @@ window.addEventListener("load",function() {
 		init: function(p) {
 			// You can call the parent's constructor with this._super(..)
 			this._super(p, {
-				sheet: "mario",	// Setting a sprite sheet sets sprite width and height
+				sheet: "mario_small",	// Setting a sprite sheet sets sprite width and height
 				sprite: "mario anim",
 				x: 150,			// You can also set additional properties that can
 				y: 380,				// be overridden on object creation
 				jumpSpeed: -550,
+				invulnerabilityTime: 0,
 				type: Q.SPRITE_ACTIVE | Q.SPRITE_DEFAULT
 			});
 
@@ -155,6 +156,10 @@ window.addEventListener("load",function() {
 				this.destroy();
 				Q.stageScene("endGame",2, { label: "You Lose" });
 			} else {
+
+				if(this.p.invulnerabilityTime > 0)
+					this.p.invulnerabilityTime = Math.max(this.p.invulnerabilityTime - dt, 0);
+
 				if(typeof this.p.minX !== 'undefined' && this.p.minX >= this.p.x) {
 					this.p.x = this.p.minX;
 					this.p.vx = Math.max(this.p.vx, 0);
@@ -177,6 +182,27 @@ window.addEventListener("load",function() {
 
 				if(this.p.vx == 0)
 					this.p.x = Math.round(this.p.x);
+			}
+		},
+		grow: function(){
+			if(this.p.sheet == "mario_small"){
+				this.sheet("mario_large", true);
+			} else {
+				Q.state.inc("score", 1000);
+			}
+		},
+		shrink: function(){
+			this.p.invulnerabilityTime = 0.4;
+			if(this.p.sheet == "mario_large"){
+				this.sheet("mario_small", true);
+			}
+		},
+		receiveDamage: function(){
+			if(this.p.invulnerabilityTime == 0) {
+				if(this.p.sheet == "mario_large")
+					this.shrink();
+				else
+					this.loseLife();
 			}
 		},
 		loseLife: function(){
@@ -256,7 +282,7 @@ window.addEventListener("load",function() {
 			this.off("bump.top");
 			this.on("bump.top",function(collision) {
 				if(collision.obj.isA("Mario")) { 
-					collision.obj.loseLife();
+					collision.obj.receiveDamage();
 				}
 			});
 		}
@@ -285,9 +311,9 @@ window.addEventListener("load",function() {
 			collision.obj.destroy();
 			Q.stageScene("endGame",1, { label: "You Win" });
 		}*/
-		collision: function(col) {
-			if(col.obj.isA("Mario")) { 
-				col.obj.destroy();
+		collision: function(collision) {
+			if(collision.obj.isA("Mario")) { 
+				collision.obj.destroy();
 				if(Q.state.get("level") == 2)
 					Q.stageScene("endGame",1, { label: "You Win" });
 				else {
@@ -321,12 +347,35 @@ window.addEventListener("load",function() {
 			this.on("sensor");
 
 		},
-		sensor: function(col) {
-			if(!this.p.collected && col.isA("Mario")) { 
+		sensor: function(collision) {
+			if(!this.p.collected && collision.isA("Mario")) { 
 				this.p.collected = true;
 				Q.state.inc("score",200);
 				this.animate({y: this.p.y-50}, 0.3, Q.Easing.Linear, { callback: function(){ this.destroy() } });
 				//this.animate({y: this.p.y-50}, 0.3, Q.Easing.Quadratic.Out, { callback: function(){ this.destroy() } });
+			}
+		}
+	});
+
+	Q.Sprite.extend("Mushroom_grow",{
+
+		// the init constructor is called on creation
+		init: function(p) {
+			// You can call the parent's constructor with this._super(..)
+			this._super(p, {
+				sheet: "mushroom_grow",
+				collisionMask: Q.SPRITE_ENEMY | Q.SPRITE_ACTIVE | Q.SPRITE_DEFAULT,
+				type: Q.SPRITE_FRIENDLY,
+				vx: 150
+			});
+
+			this.add('2d');
+			this.on("hit",this,"collision");
+		},
+		collision: function(collision) {
+			if(collision.obj.isA("Mario")) { 
+				this.destroy();
+				collision.obj.grow();
 			}
 		}
 	});
@@ -343,9 +392,9 @@ window.addEventListener("load",function() {
 		var mario = stage.insert(new Q.Mario({minX: minX, maxX: maxX}));
 
 		/*SPAWN ENEMIES*/
-		stage.insert(new Q.Piranha({x: 16, y: 550}));
-		stage.insert(new Q.Piranha({x: 52, y: 550}));
-		stage.insert(new Q.Piranha({x: 85, y: 550}));
+		stage.insert(new Q.Piranha({x: 16, y: 500}));
+		stage.insert(new Q.Piranha({x: 52, y: 500}));
+		stage.insert(new Q.Piranha({x: 85, y: 500}));
 		stage.insert(new Q.Goomba({x: 600, y: 300}));
 		stage.insert(new Q.Bloopa({x: 1200, y: 450}));
 		stage.insert(new Q.Goomba({x: 1800, y: 380}));
@@ -362,6 +411,9 @@ window.addEventListener("load",function() {
 		stage.insert(new Q.Coin({x: 1175, y: 400}));
 		stage.insert(new Q.Coin({x: 1200, y: 425}));
 		stage.insert(new Q.Coin({x: 1200, y: 455}));
+
+		/*SPAWN MUSHROOMS*/
+		stage.insert(new Q.Mushroom_grow({x: 50, y: 200}));
 
 		/*SPAWN PRINCESS*/
 		stage.insert(new Q.Princess({x: 1950, y: 380}));
@@ -385,9 +437,6 @@ window.addEventListener("load",function() {
 		stage.insert(new Q.Goomba({x: 900, y: 500}));
 		stage.insert(new Q.Piranha({x: 1428, y: 350}));
 		stage.insert(new Q.Goomba({x: 1700, y: 450}));
-
-
-
 
 		/*SPAWN COINS*/
 		stage.insert(new Q.Coin({x: 365, y: 325}));
@@ -486,14 +535,17 @@ window.addEventListener("load",function() {
 /*************LOAD***************/
 /********************************/
 
-	Q.load("mario_small.gif, mario_small.json, goomba.png, goomba.json, bloopa.png, bloopa.json, piranha.png, piranha.json, princess.png, princess.json, coin.png, coin.json, mainTitle.png", function() {
+	Q.load("mario_small.gif, mario_small.json, mario_large.gif, mario_large.json, goomba.png, goomba.json, bloopa.png, bloopa.json, piranha.png, piranha.json, princess.png, princess.json, coin.png, coin.json, mushroom_grow.gif, mushroom_grow.json, mushroom_1up.gif, mushroom_1up.json, mainTitle.png", function() {
 		Q.compileSheets("mario_small.gif","mario_small.json");
+		Q.compileSheets("mario_large.gif","mario_large.json");
 		Q.compileSheets("goomba.png","goomba.json");
 		Q.compileSheets("bloopa.png","bloopa.json");
 		Q.compileSheets("piranha.png","piranha.json");
 		Q.compileSheets("princess.png","princess.json");
 		Q.compileSheets("coin.png","coin.json");
-		//Q.debug = true;
+		Q.compileSheets("mushroom_grow.gif","mushroom_grow.json");
+		Q.compileSheets("mushroom_1up.gif","mushroom_1up.json");
+		Q.debug = true;
 	});
 
 	Q.loadTMX("level1.tmx, sprites.json, level2.tmx", function() {
