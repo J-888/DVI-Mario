@@ -77,6 +77,7 @@ window.addEventListener("load",function() {
 				if(collision.obj.isA("Mario")) { 
 					this.play("die", 1);
 					collision.obj.p.vy = -300;
+					this.p.vx = 0;
 				}
 			});
 		},
@@ -148,7 +149,7 @@ window.addEventListener("load",function() {
 
 		},
 		step: function(dt) {
-			//console.log("x: " + this.p.x + "  y: " + this.p.y);
+			console.log("x: " + this.p.x + "  y: " + this.p.y);
 
 			if(this.p.y > 610) { //map fall
 				//this.p.x = 150;
@@ -337,9 +338,8 @@ window.addEventListener("load",function() {
 				collected: false
 			});
 
-			this.add('animation');
+			this.add('animation, tween');
 			this.play("glint");
-			this.add('tween');
 
 			// Add in pre-made components to get up and running quickly
 			// The `2d` component adds in default 2d collision detection
@@ -369,13 +369,37 @@ window.addEventListener("load",function() {
 				vx: 150
 			});
 
-			this.add('2d');
+			this.add('2d, aiBounce');
 			this.on("hit",this,"collision");
 		},
 		collision: function(collision) {
 			if(collision.obj.isA("Mario")) { 
 				this.destroy();
 				collision.obj.grow();
+			}
+		}
+	});
+
+
+	Q.Sprite.extend("Mushroom_1up",{
+
+		// the init constructor is called on creation
+		init: function(p) {
+			// You can call the parent's constructor with this._super(..)
+			this._super(p, {
+				sheet: "mushroom_1up",
+				collisionMask: Q.SPRITE_ENEMY | Q.SPRITE_ACTIVE | Q.SPRITE_DEFAULT,
+				type: Q.SPRITE_FRIENDLY,
+				vx: 150
+			});
+
+			this.add('2d, aiBounce');
+			this.on("hit",this,"collision");
+		},
+		collision: function(collision) {
+			if(collision.obj.isA("Mario")) { 
+				this.destroy();
+				Q.state.inc("lives", 1);
 			}
 		}
 	});
@@ -397,8 +421,8 @@ window.addEventListener("load",function() {
 		stage.insert(new Q.Piranha({x: 85, y: 500}));
 		stage.insert(new Q.Goomba({x: 600, y: 300}));
 		stage.insert(new Q.Bloopa({x: 1200, y: 450}));
+		stage.insert(new Q.Goomba({x: 1700, y: 380}));
 		stage.insert(new Q.Goomba({x: 1800, y: 380}));
-		stage.insert(new Q.Goomba({x: 1900, y: 380}));
 
 
 		/*SPAWN COINS*/
@@ -414,6 +438,7 @@ window.addEventListener("load",function() {
 
 		/*SPAWN MUSHROOMS*/
 		stage.insert(new Q.Mushroom_grow({x: 50, y: 200}));
+		stage.insert(new Q.Mushroom_1up({x: 1600, y: 380}));
 
 		/*SPAWN PRINCESS*/
 		stage.insert(new Q.Princess({x: 1950, y: 380}));
@@ -460,6 +485,10 @@ window.addEventListener("load",function() {
 		stage.insert(new Q.Coin({x: 1665, y: 280}));
 		stage.insert(new Q.Coin({x: 1700, y: 280}));
 
+		/*SPAWN MUSHROOMS*/
+		stage.insert(new Q.Mushroom_grow({x: 700, y: 500}));
+		stage.insert(new Q.Mushroom_1up({x: 1600, y: 380}));
+
 		/*SPAWN PRINCESS*/
 		stage.insert(new Q.Princess({x: 1950, y: 380}));
 
@@ -488,7 +517,10 @@ window.addEventListener("load",function() {
 			this.lives(Q.state.get("lives"));
 		},
 		lives: function(lives) {
-			this.p.label = "♥".repeat(lives);
+			if(lives <= 5)
+				this.p.label = "♥".repeat(lives);
+			else
+				this.p.label = lives+"x♥";
 		}
 	});
 
@@ -545,7 +577,7 @@ window.addEventListener("load",function() {
 		Q.compileSheets("coin.png","coin.json");
 		Q.compileSheets("mushroom_grow.gif","mushroom_grow.json");
 		Q.compileSheets("mushroom_1up.gif","mushroom_1up.json");
-		Q.debug = true;
+		//Q.debug = true;
 	});
 
 	Q.loadTMX("level1.tmx, sprites.json, level2.tmx", function() {
