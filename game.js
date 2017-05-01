@@ -146,7 +146,7 @@ window.addEventListener("load",function() {
 
 		},
 		step: function(dt) {
-			//console.log(this.p.landed > 0);
+			//console.log("x: " + this.p.x + "  y: " + this.p.y);
 			if(!this.p.jumping && this.p.landed > 0)
 				if(this.p.vx > 0) {
 					this.play("run_right");
@@ -171,8 +171,15 @@ window.addEventListener("load",function() {
 		loseLife: function(){
 			//this.p.x = 150;
 			//this.p.y = 380;
-			this.destroy();
-			Q.stageScene("endGame",2, { label: "You Lose" });
+			if(Q.state.get("lives") == 0) {
+				this.destroy();
+				Q.stageScene("endGame",2, { label: "You Lose" });
+			}
+			else {
+				this.destroy();
+				Q.state.dec("lives",1);
+				Q.stageScene('level' + Q.state.get("level"));
+			}
 		}
 	});
 
@@ -270,7 +277,12 @@ window.addEventListener("load",function() {
 		collision: function(col) {
 			if(col.obj.isA("Mario")) { 
 				col.obj.destroy();
-				Q.stageScene("endGame",1, { label: "You Win" });
+				if(Q.state.get("level") == 2)
+					Q.stageScene("endGame",1, { label: "You Win" });
+				else {
+					Q.state.inc("level",1);
+					Q.stageScene('level' + Q.state.get("level"));
+				}
 			}
 		}
 	});
@@ -315,7 +327,6 @@ window.addEventListener("load",function() {
 	Q.scene("level1",function(stage) {
 		Q.stageTMX("level1.tmx",stage);
 
-
 		/*SPAWN PLAYER*/
 		var mario = stage.insert(new Q.Mario());
 
@@ -335,12 +346,57 @@ window.addEventListener("load",function() {
 		stage.insert(new Q.Coin({x: 650, y: 375}));
 		stage.insert(new Q.Coin({x: 675, y: 400}));
 
-
 		stage.insert(new Q.Coin({x: 1150, y: 375}));
 		stage.insert(new Q.Coin({x: 1175, y: 400}));
 		stage.insert(new Q.Coin({x: 1200, y: 425}));
 		stage.insert(new Q.Coin({x: 1200, y: 455}));
 
+		/*SPAWN PRINCESS*/
+		stage.insert(new Q.Princess({x: 1950, y: 380}));
+
+		/*VIEWPORT*/
+		stage.add("viewport").follow(mario,{ x: true, y: false });
+		stage.viewport.offsetX = -100;
+		stage.viewport.offsetY = 155;
+		stage.centerOn(150,380);
+	});
+
+	Q.scene("level2",function(stage) {
+		Q.stageTMX("level2.tmx",stage);
+
+		/*SPAWN PLAYER*/
+		var mario = stage.insert(new Q.Mario());
+
+		/*SPAWN ENEMIES*/
+		stage.insert(new Q.Goomba({x: 650, y: 500}));
+		stage.insert(new Q.Goomba({x: 900, y: 500}));
+		stage.insert(new Q.Piranha({x: 1428, y: 350}));
+		stage.insert(new Q.Goomba({x: 1700, y: 450}));
+
+
+
+
+		/*SPAWN COINS*/
+		stage.insert(new Q.Coin({x: 365, y: 325}));
+		stage.insert(new Q.Coin({x: 390, y: 300}));
+		stage.insert(new Q.Coin({x: 415, y: 300}));
+		stage.insert(new Q.Coin({x: 440, y: 300}));
+		stage.insert(new Q.Coin({x: 465, y: 300}));
+		stage.insert(new Q.Coin({x: 490, y: 325}));
+
+		stage.insert(new Q.Coin({x: 650, y: 350}));
+		stage.insert(new Q.Coin({x: 700, y: 350}));
+		stage.insert(new Q.Coin({x: 750, y: 350}));
+
+		stage.insert(new Q.Coin({x: 1280, y: 260}));
+		stage.insert(new Q.Coin({x: 1305, y: 260}));
+
+		stage.insert(new Q.Coin({x: 1415, y: 260}));
+		stage.insert(new Q.Coin({x: 1440, y: 260}));
+
+		stage.insert(new Q.Coin({x: 1630, y: 280}));
+		stage.insert(new Q.Coin({x: 1665, y: 280}));
+		stage.insert(new Q.Coin({x: 1700, y: 280}));
 
 		/*SPAWN PRINCESS*/
 		stage.insert(new Q.Princess({x: 1950, y: 380}));
@@ -362,9 +418,28 @@ window.addEventListener("load",function() {
 		}
 	});
 
+	Q.UI.Text.extend("Lives",{
+		init: function(p) {
+			this._super({ label: "", x: Q.width/2-10, y: 10-Q.height/2, weight: 100, size: 20, family: "PressStart2P", color: "#FF0000", outlineWidth: 6, align: "right" });
+			Q.state.on("change.lives",this,"lives");
+			this.lives(Q.state.get("lives"));
+		},
+		lives: function(lives) {
+			if(lives == 3)
+				this.p.label = "♥♥♥";
+			else if(lives == 2)
+				this.p.label = "♥♥";
+			else if(lives == 1)
+				this.p.label = "♥";
+			else
+				this.p.label = "";
+		}
+	});
+
 	Q.scene("gameStats",function(stage) {
 		var container = stage.insert(new Q.UI.Container({ x: Q.width/2, y: Q.height/2, fill: "rgba(0,0,0,0)" }));
 		var scoreLabel = container.insert(new Q.Score());
+		var livesLabel = container.insert(new Q.Lives());
 	});
 
 	Q.scene('endGame',function(stage) {
@@ -392,7 +467,7 @@ window.addEventListener("load",function() {
 		
 		button.on("click",function() {
 			Q.clearStages();
-			Q.state.reset({ score: 0, lives: 3 });
+			Q.state.reset({ level: 1, score: 0, lives: 3 });
 			Q.stageScene('level1');
 			Q.stageScene("gameStats",1);
 		});
@@ -414,7 +489,7 @@ window.addEventListener("load",function() {
 		//Q.debug = true;
 	});
 
-	Q.loadTMX("level1.tmx, sprites.json", function() {
+	Q.loadTMX("level1.tmx, sprites.json, level2.tmx", function() {
 		Q.stageScene('titleScreen');
 	});
 });
